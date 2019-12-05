@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/42150d0d-b3d7-40d0-ad56-8a2b66511cb6/resourceGroups/Auctorem/providers/Microsoft.Web/sites/auctorem",
+    "appService.deploySubpath": ""
+}
