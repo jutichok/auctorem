@@ -113,20 +113,25 @@ if [ -e "$DEPLOYMENT_TARGET/package.json" ]; then
   cd - > /dev/null
 fi
 
-# 3. Angular prod build
-IF if [ -e "$DEPLOYMENT_SOURCE/.angular.json" ]; then
-  echo "Building app in $DEPLOYMENT_SOURCE"
-  cd "$DEPLOYMENT_SOURCE"
-  eval $NPM_CMD run build
-  exitWithMessageOnError "build failed"
+
+
+
+# 4. Angular Prod Build
+if [ -e "$DEPLOYMENT_TARGET/.angular.json" ]; then
+  cd "$DEPLOYMENT_TARGET"
+  eval ./node_modules/.bin/ng build --prod
+  exitWithMessageOnError "Angular build failed"
   cd - > /dev/null
 fi
 
+##################################################################################################################################
 
-# 1. KuduSync
-if [[ "$IN_PLACE_DEPLOYMENT" -ne "1" ]]; then
-  "$KUDU_SYNC_CMD" -v 50 -f "$DEPLOYMENT_SOURCE/.dist" -t "$DEPLOYMENT_TARGET" -n "$NEXT_MANIFEST_PATH" -p "$PREVIOUS_MANIFEST_PATH" -i ".git;.hg;.deployment;deploy.sh"
-  exitWithMessageOnError "Kudu Sync failed"
+# Post deployment stub
+if [[ -n "$POST_DEPLOYMENT_ACTION" ]]; then
+  POST_DEPLOYMENT_ACTION=${POST_DEPLOYMENT_ACTION//\"}
+  cd "${POST_DEPLOYMENT_ACTION_DIR%\\*}"
+  "$POST_DEPLOYMENT_ACTION"
+  exitWithMessageOnError "post deployment action failed"
 fi
 
 ##################################################################################################################################
