@@ -100,6 +100,11 @@ selectNodeVersion () {
 
 echo Handling node.js deployment.
 
+# 1. KuduSync
+if [[ "$IN_PLACE_DEPLOYMENT" -ne "1" ]]; then
+  "$KUDU_SYNC_CMD" -v 50 -f "$DEPLOYMENT_SOURCE" -t "$DEPLOYMENT_TARGET" -n "$NEXT_MANIFEST_PATH" -p "$PREVIOUS_MANIFEST_PATH" -i ".git;.hg;.deployment;deploy.sh"
+  exitWithMessageOnError "Kudu Sync failed"
+fi
 
 # 2. Select node version
 selectNodeVersion
@@ -111,27 +116,6 @@ if [ -e "$DEPLOYMENT_TARGET/package.json" ]; then
   eval $NPM_CMD install --production
   exitWithMessageOnError "npm failed"
   cd - > /dev/null
-fi
-
-
-
-
-# 4. Angular Prod Build
-if [ -e "$DEPLOYMENT_TARGET/.angular.json" ]; then
-  cd "$DEPLOYMENT_TARGET"
-  eval ./node_modules/.bin/ng build --prod
-  exitWithMessageOnError "Angular build failed"
-  cd - > /dev/null
-fi
-
-##################################################################################################################################
-
-# Post deployment stub
-if [[ -n "$POST_DEPLOYMENT_ACTION" ]]; then
-  POST_DEPLOYMENT_ACTION=${POST_DEPLOYMENT_ACTION//\"}
-  cd "${POST_DEPLOYMENT_ACTION_DIR%\\*}"
-  "$POST_DEPLOYMENT_ACTION"
-  exitWithMessageOnError "post deployment action failed"
 fi
 
 ##################################################################################################################################
